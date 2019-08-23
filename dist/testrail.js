@@ -5,7 +5,6 @@ var chalk = require('chalk');
 var TestRail = /** @class */ (function () {
     function TestRail(options) {
         this.options = options;
-        this.cases = {};
         this.base = "https://" + options.domain + "/index.php?/api/v2";
     }
     TestRail.prototype.createRun = function (name, description) {
@@ -34,6 +33,7 @@ var TestRail = /** @class */ (function () {
             })
                 .catch(function (error) { return console.error(error); });
         }
+        console.log("Creating a run for case id's " + this.cases);
         axios({
             method: 'post',
             url: this.base + "/add_run/" + this.options.projectId,
@@ -67,19 +67,7 @@ var TestRail = /** @class */ (function () {
     };
     TestRail.prototype.publishResults = function (results) {
         var _this = this;
-        axios({
-            method: 'get',
-            url: this.base + "/get_tests/" + this.runId,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-                username: this.options.username,
-                password: this.options.password,
-            },
-        })
-            .then(function (response) {
-            var ids = response.map(function (a) { return "" + a.case_id; });
-        })
-            .catch(function (error) { return console.error(error); });
+        var results_filtered = results.filter(function (res) { return _this.cases.includes(res.case_id); });
         axios({
             method: 'post',
             url: this.base + "/add_results_for_cases/" + this.runId,
@@ -88,7 +76,7 @@ var TestRail = /** @class */ (function () {
                 username: this.options.username,
                 password: this.options.password,
             },
-            data: JSON.stringify({ results: results }),
+            data: JSON.stringify({ results_filtered: results_filtered }),
         })
             .then(function (response) {
             console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));

@@ -5,7 +5,7 @@ import { TestRailOptions, TestRailResult } from './testrail.interface';
 export class TestRail {
   private base: String;
   private runId: Number;
-  private cases = {};
+  private cases;
 
   constructor(private options: TestRailOptions) {
     this.base = `https://${options.domain}/index.php?/api/v2`;
@@ -74,20 +74,7 @@ export class TestRail {
   }
 
   public publishResults(results: TestRailResult[]) {
-    axios({
-      method: 'get',
-      url: `${this.base}/get_tests/${this.runId}`,
-      headers: { 'Content-Type': 'application/json' },
-      auth: {
-        username: this.options.username,
-        password: this.options.password,
-      },
-    })
-      .then(response => {
-        const ids = response.map(a => `${a.case_id}`);
-
-      })
-      .catch(error => console.error(error));
+    const results_filtered = results.filter(res => this.cases.includes(res.case_id));
 
     axios({
       method: 'post',
@@ -97,7 +84,7 @@ export class TestRail {
         username: this.options.username,
         password: this.options.password,
       },
-      data: JSON.stringify({ results }),
+      data: JSON.stringify({ results_filtered }),
     })
       .then(response => {
         console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
