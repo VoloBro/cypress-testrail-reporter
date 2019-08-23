@@ -86,7 +86,7 @@ export class TestRail {
         username: this.options.username,
         password: this.options.password,
       },
-      data: JSON.stringify({ results_filtered }),
+      data: JSON.stringify({ "results": results_filtered }),
     })
       .then(response => {
         console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
