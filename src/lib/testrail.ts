@@ -14,7 +14,7 @@ export class TestRail {
   public createRun(name: string, description: string) {
     const customField = process.env.TESTRAIL_CUSTOM;
 
-    if (customField){
+    if (customField) {
       axios({
         method: 'get',
         url: `${this.base}/get_cases/${this.options.projectId}/&suite_id=${this.options.suiteId}`,
@@ -33,32 +33,34 @@ export class TestRail {
         .then(response => {
           const key = customField.split(":")[0].trim();
           const value = customField.split(":")[1].trim();
-          this.cases = response.filter(tc => tc[key] == value);
+          this.cases = response.data.filter(tc => tc[key] == value).map(c => c.id);
+
+          console.log(`Creating a run for case id's`, this.cases);
+
+          axios({
+            method: 'post',
+            url: `${this.base}/add_run/${this.options.projectId}`,
+            headers: { 'Content-Type': 'application/json' },
+            auth: {
+              username: this.options.username,
+              password: this.options.password,
+            },
+            data: JSON.stringify({
+              suite_id: this.options.suiteId,
+              name,
+              description,
+              include_all: false,
+              case_ids: this.cases,
+            }),
+          })
+            .then(response => {
+              this.runId = response.data.id;
+            })
+            .catch(error => console.error(error));
+
         })
         .catch(error => console.error(error));
     }
-
-    console.log(`Creating a run for case id's ${this.cases}`);
-    
-    axios({
-      method: 'post',
-      url: `${this.base}/add_run/${this.options.projectId}`,
-      headers: { 'Content-Type': 'application/json' },
-      auth: {
-        username: this.options.username,
-        password: this.options.password,
-      },
-      data: JSON.stringify({
-        suite_id: this.options.suiteId,
-        name,
-        description,
-        case_ids: this.cases,
-      }),
-    })
-      .then(response => {
-        this.runId = response.data.id;
-      })
-      .catch(error => console.error(error));
   }
 
   public deleteRun() {
