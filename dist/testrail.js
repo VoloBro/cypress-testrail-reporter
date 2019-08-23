@@ -77,7 +77,7 @@ var TestRail = /** @class */ (function () {
                 username: this.options.username,
                 password: this.options.password,
             },
-            data: JSON.stringify({ results_filtered: results_filtered }),
+            data: JSON.stringify({ "results": results_filtered }),
         })
             .then(function (response) {
             console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
