@@ -31,7 +31,7 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
         runner.on('start', function () {
             var executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
             var name = (reporterOptions.runName || 'Automated test run') + " " + executionDateTime;
-            var description = 'For the Cypress run visit https://dashboard.cypress.io/#/projects/runs';
+            var description = 'Hello Description';
             _this.testRail.createRun(name, description);
         });
         runner.on('pass', function (test) {

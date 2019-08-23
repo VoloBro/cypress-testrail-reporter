@@ -5,10 +5,35 @@ var chalk = require('chalk');
 var TestRail = /** @class */ (function () {
     function TestRail(options) {
         this.options = options;
+        this.cases = {};
         this.base = "https://" + options.domain + "/index.php?/api/v2";
     }
     TestRail.prototype.createRun = function (name, description) {
         var _this = this;
+        var customField = process.env.TESTRAIL_CUSTOM;
+        if (customField) {
+            axios({
+                method: 'get',
+                url: this.base + "/get_cases/" + this.options.projectId + "/&suite_id=" + this.options.suiteId,
+                headers: { 'Content-Type': 'application/json' },
+                auth: {
+                    username: this.options.username,
+                    password: this.options.password,
+                },
+                data: JSON.stringify({
+                    suite_id: this.options.suiteId,
+                    name: name,
+                    description: description,
+                    include_all: true,
+                }),
+            })
+                .then(function (response) {
+                var key = customField.split(":")[0].trim();
+                var value = customField.split(":")[1].trim();
+                _this.cases = response.filter(function (tc) { return tc[key] == value; });
+            })
+                .catch(function (error) { return console.error(error); });
+        }
         axios({
             method: 'post',
             url: this.base + "/add_run/" + this.options.projectId,
@@ -21,7 +46,7 @@ var TestRail = /** @class */ (function () {
                 suite_id: this.options.suiteId,
                 name: name,
                 description: description,
-                include_all: true,
+                case_ids: this.cases,
             }),
         })
             .then(function (response) {
@@ -42,6 +67,19 @@ var TestRail = /** @class */ (function () {
     };
     TestRail.prototype.publishResults = function (results) {
         var _this = this;
+        axios({
+            method: 'get',
+            url: this.base + "/get_tests/" + this.runId,
+            headers: { 'Content-Type': 'application/json' },
+            auth: {
+                username: this.options.username,
+                password: this.options.password,
+            },
+        })
+            .then(function (response) {
+            var ids = response.map(function (a) { return "" + a.case_id; });
+        })
+            .catch(function (error) { return console.error(error); });
         axios({
             method: 'post',
             url: this.base + "/add_results_for_cases/" + this.runId,
