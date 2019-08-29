@@ -21,10 +21,15 @@ export class CypressTestRailReporter extends reporters.Spec {
     this.validate(reporterOptions, 'suiteId');
 
     runner.on('start', () => {
-      const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
-      const name = `${reporterOptions.runName || 'Automated test run'} ${executionDateTime}`;
-      const description = 'Hello Description';
-      this.testRail.createRun(name, description);
+      if (process.env.TESTRAIL_RUNID){
+        this.testRail.runId = parseInt(process.env.TESTRAIL_RUNID);
+      }
+      else{
+        const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
+        const name = `${reporterOptions.runName || 'Automated test run'} ${executionDateTime}`;
+        const description = 'Hello Description';
+        this.testRail.createRun(name, description);
+      }
     });
 
     runner.on('pass', test => {

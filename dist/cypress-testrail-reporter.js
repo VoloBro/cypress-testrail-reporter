@@ -29,10 +29,15 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
         _this.validate(reporterOptions, 'projectId');
         _this.validate(reporterOptions, 'suiteId');
         runner.on('start', function () {
-            var executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
-            var name = (reporterOptions.runName || 'Automated test run') + " " + executionDateTime;
-            var description = 'Hello Description';
-            _this.testRail.createRun(name, description);
+            if (process.env.TESTRAIL_RUNID) {
+                _this.testRail.runId = parseInt(process.env.TESTRAIL_RUNID);
+            }
+            else {
+                var executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
+                var name_1 = (reporterOptions.runName || 'Automated test run') + " " + executionDateTime;
+                var description = 'Hello Description';
+                _this.testRail.createRun(name_1, description);
+            }
         });
         runner.on('pass', function (test) {
             var caseIds = shared_1.titleToCaseIds(test.title);

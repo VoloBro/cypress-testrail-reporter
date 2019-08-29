@@ -4,7 +4,7 @@ import { TestRailOptions, TestRailResult } from './testrail.interface';
 
 export class TestRail {
   private base: String;
-  private runId: Number;
+  public runId: Number;
   private cases;
 
   constructor(private options: TestRailOptions) {
