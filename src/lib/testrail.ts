@@ -55,7 +55,9 @@ export class TestRail {
           })
             .then(response => {
               this.runId = response.data.id;
-              callback();
+              if (callback){
+                callback();
+              }
             })
             .catch(error => console.error(error));
 
@@ -64,10 +66,10 @@ export class TestRail {
     }
   }
 
-  public deleteRun() {
+  public closeRun() {
     axios({
       method: 'post',
-      url: `${this.base}/delete_run/${this.runId}`,
+      url: `${this.base}/close_run/${this.runId}`,
       headers: { 'Content-Type': 'application/json' },
       auth: {
         username: this.options.username,
@@ -76,7 +78,7 @@ export class TestRail {
     }).catch(error => console.error(error));
   }
 
-  public publishResults(results: TestRailResult[]) {
+  public publishResults(results: TestRailResult[], callback) {
     const results_filtered = results.filter(res => this.cases.includes(res.case_id));
 
     axios({
@@ -98,6 +100,9 @@ export class TestRail {
           )}`,
           '\n'
         );
+        if (callback){
+          callback();
+        }
       })
       .catch(error => console.error(error));
   }

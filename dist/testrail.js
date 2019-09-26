@@ -49,17 +49,19 @@ var TestRail = /** @class */ (function () {
                 })
                     .then(function (response) {
                     _this.runId = response.data.id;
-                    callback();
+                    if (callback) {
+                        callback();
+                    }
                 })
                     .catch(function (error) { return console.error(error); });
             })
                 .catch(function (error) { return console.error(error); });
         }
     };
-    TestRail.prototype.deleteRun = function () {
+    TestRail.prototype.closeRun = function () {
         axios({
             method: 'post',
-            url: this.base + "/delete_run/" + this.runId,
+            url: this.base + "/close_run/" + this.runId,
             headers: { 'Content-Type': 'application/json' },
             auth: {
                 username: this.options.username,
@@ -67,7 +69,7 @@ var TestRail = /** @class */ (function () {
             },
         }).catch(function (error) { return console.error(error); });
     };
-    TestRail.prototype.publishResults = function (results) {
+    TestRail.prototype.publishResults = function (results, callback) {
         var _this = this;
         var results_filtered = results.filter(function (res) { return _this.cases.includes(res.case_id); });
         axios({
@@ -83,6 +85,9 @@ var TestRail = /** @class */ (function () {
             .then(function (response) {
             console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
             console.log('\n', " - Results are published to " + chalk.magenta("https://" + _this.options.domain + "/index.php?/runs/view/" + _this.runId), '\n');
+            if (callback) {
+                callback();
+            }
         })
             .catch(function (error) { return console.error(error); });
     };

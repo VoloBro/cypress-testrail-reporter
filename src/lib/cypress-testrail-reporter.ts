@@ -61,19 +61,21 @@ export class CypressTestRailReporter extends reporters.Spec {
 
       if (process.env.TESTRAIL_RUNID) {
         this.testRail.runId = parseInt(process.env.TESTRAIL_RUNID);
-        this.testRail.cases = this.results.map((item)=>{
+        this.testRail.cases = this.results.map((item) => {
           return item.case_id;
         })
-        this.testRail.publishResults(this.results);
+        this.testRail.publishResults(this.results, null);
       }
       else {
         const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
         const name = `${reporterOptions.runName || 'Automated test run'} ${executionDateTime}`;
         const description = 'Hello Description';
         this.testRail.createRun(name, description, () => {
-          this.testRail.publishResults(this.results);
+          this.testRail.publishResults(this.results, () => {
+            this.testRail.closeRun();
+          });
         });
-      }      
+      }
     });
   }
 
