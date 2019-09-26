@@ -5,13 +5,13 @@ import { TestRailOptions, TestRailResult } from './testrail.interface';
 export class TestRail {
   private base: String;
   public runId: Number;
-  private cases;
+  public cases;
 
   constructor(private options: TestRailOptions) {
     this.base = `https://${options.domain}/index.php?/api/v2`;
   }
 
-  public createRun(name: string, description: string) {
+  public createRun(name: string, description: string, callback) {
     const customField = process.env.TESTRAIL_CUSTOM;
 
     if (customField) {
@@ -55,6 +55,7 @@ export class TestRail {
           })
             .then(response => {
               this.runId = response.data.id;
+              callback();
             })
             .catch(error => console.error(error));
 

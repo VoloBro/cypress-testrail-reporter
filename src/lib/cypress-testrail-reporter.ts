@@ -20,18 +20,6 @@ export class CypressTestRailReporter extends reporters.Spec {
     this.validate(reporterOptions, 'projectId');
     this.validate(reporterOptions, 'suiteId');
 
-    runner.on('start', () => {
-      if (process.env.TESTRAIL_RUNID){
-        this.testRail.runId = parseInt(process.env.TESTRAIL_RUNID);
-      }
-      else{
-        const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
-        const name = `${reporterOptions.runName || 'Automated test run'} ${executionDateTime}`;
-        const description = 'Hello Description';
-        this.testRail.createRun(name, description);
-      }
-    });
-
     runner.on('pass', test => {
       const caseIds = titleToCaseIds(test.title);
       if (caseIds.length > 0) {
@@ -68,12 +56,24 @@ export class CypressTestRailReporter extends reporters.Spec {
           'No testcases were matched. Ensure that your tests are declared correctly and matches Cxxx',
           '\n'
         );
-        this.testRail.deleteRun();
-
         return;
       }
 
-      this.testRail.publishResults(this.results);
+      if (process.env.TESTRAIL_RUNID) {
+        this.testRail.runId = parseInt(process.env.TESTRAIL_RUNID);
+        this.testRail.cases = this.results.map((item)=>{
+          return item.case_id;
+        })
+        this.testRail.publishResults(this.results);
+      }
+      else {
+        const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
+        const name = `${reporterOptions.runName || 'Automated test run'} ${executionDateTime}`;
+        const description = 'Hello Description';
+        this.testRail.createRun(name, description, () => {
+          this.testRail.publishResults(this.results);
+        });
+      }      
     });
   }
 

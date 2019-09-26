@@ -28,17 +28,6 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
         _this.validate(reporterOptions, 'password');
         _this.validate(reporterOptions, 'projectId');
         _this.validate(reporterOptions, 'suiteId');
-        runner.on('start', function () {
-            if (process.env.TESTRAIL_RUNID) {
-                _this.testRail.runId = parseInt(process.env.TESTRAIL_RUNID);
-            }
-            else {
-                var executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
-                var name_1 = (reporterOptions.runName || 'Automated test run') + " " + executionDateTime;
-                var description = 'Hello Description';
-                _this.testRail.createRun(name_1, description);
-            }
-        });
         runner.on('pass', function (test) {
             var caseIds = shared_1.titleToCaseIds(test.title);
             if (caseIds.length > 0) {
@@ -71,10 +60,23 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
             if (_this.results.length == 0) {
                 console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
                 console.warn('\n', 'No testcases were matched. Ensure that your tests are declared correctly and matches Cxxx', '\n');
-                _this.testRail.deleteRun();
                 return;
             }
-            _this.testRail.publishResults(_this.results);
+            if (process.env.TESTRAIL_RUNID) {
+                _this.testRail.runId = parseInt(process.env.TESTRAIL_RUNID);
+                _this.testRail.cases = _this.results.map(function (item) {
+                    return item.case_id;
+                });
+                _this.testRail.publishResults(_this.results);
+            }
+            else {
+                var executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
+                var name_1 = (reporterOptions.runName || 'Automated test run') + " " + executionDateTime;
+                var description = 'Hello Description';
+                _this.testRail.createRun(name_1, description, function () {
+                    _this.testRail.publishResults(_this.results);
+                });
+            }
         });
         return _this;
     }

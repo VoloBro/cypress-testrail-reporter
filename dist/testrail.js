@@ -7,7 +7,7 @@ var TestRail = /** @class */ (function () {
         this.options = options;
         this.base = "https://" + options.domain + "/index.php?/api/v2";
     }
-    TestRail.prototype.createRun = function (name, description) {
+    TestRail.prototype.createRun = function (name, description, callback) {
         var _this = this;
         var customField = process.env.TESTRAIL_CUSTOM;
         if (customField) {
@@ -49,6 +49,7 @@ var TestRail = /** @class */ (function () {
                 })
                     .then(function (response) {
                     _this.runId = response.data.id;
+                    callback();
                 })
                     .catch(function (error) { return console.error(error); });
             })
