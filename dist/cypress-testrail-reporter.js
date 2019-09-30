@@ -71,8 +71,8 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
             }
             else {
                 var executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
-                var name_1 = (reporterOptions.runName || 'Automated test run') + " " + executionDateTime;
-                var description = 'Hello Description';
+                var name_1 = "" + (reporterOptions.runName || 'Automated test run');
+                var description = (reporterOptions.runDescription || 'Hello Description') + " " + executionDateTime;
                 _this.testRail.createRun(name_1, description, function () {
                     _this.testRail.publishResults(_this.results, function () {
                         _this.testRail.closeRun();

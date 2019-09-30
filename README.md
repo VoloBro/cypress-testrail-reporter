@@ -54,6 +54,8 @@ it("Can authenticate a valid userC123", ...
 
 **runName**: _string_ (optional) name of the Testrail run.
 
+**runDescription**: _string_ (optional) name of the Testrail run description.
+
 ## TestRail Settings
 
 To increase security, the TestRail team suggests using an API key instead of a password. You can see how to generate an API key [here](http://docs.gurock.com/testrail-api2/accessing#username_and_api_key).
