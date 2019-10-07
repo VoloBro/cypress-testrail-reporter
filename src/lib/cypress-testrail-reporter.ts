@@ -68,7 +68,7 @@ export class CypressTestRailReporter extends reporters.Spec {
       }
       else {
         const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
-        const name = `${reporterOptions.runName || 'Automated test run'}`;
+        const name = `${process.env.TESTRAIL_TITLE || 'Automated test run'}`;
         const description = `${reporterOptions.runDescription || 'Hello Description'} ${executionDateTime}`;
 
         this.testRail.createRun(name, description, () => {
