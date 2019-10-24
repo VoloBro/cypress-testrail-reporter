@@ -47,7 +47,7 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
             if (caseIds.length > 0) {
                 var testComment_1 = test.err.message;
                 if (process.env.TESTRAIL_RUN_DESC) {
-                    testComment_1 = "Artifacts location: " + process.env.TESTRAIL_RUN_DESC + "\n" + testComment_1;
+                    testComment_1 = "Run description: " + process.env.TESTRAIL_RUN_DESC + "\n" + testComment_1;
                 }
                 var results = caseIds.map(function (caseId) {
                     return {
