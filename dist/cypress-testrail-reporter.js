@@ -45,11 +45,15 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
         runner.on('fail', function (test) {
             var caseIds = shared_1.titleToCaseIds(test.title);
             if (caseIds.length > 0) {
+                var testComment_1 = test.err.message;
+                if (process.env.TESTRAIL_RUN_DESC) {
+                    testComment_1 = "Artifacts location: " + process.env.TESTRAIL_RUN_DESC + "\n" + testComment_1;
+                }
                 var results = caseIds.map(function (caseId) {
                     return {
                         case_id: caseId,
                         status_id: testrail_interface_1.Status.Failed,
-                        comment: "" + test.err.message,
+                        comment: testComment_1,
                     };
                 });
                 (_a = _this.results).push.apply(_a, results);
@@ -72,7 +76,7 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
             else {
                 var executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
                 var name_1 = "" + (process.env.TESTRAIL_TITLE || 'Automated test run');
-                var description = (reporterOptions.runDescription || 'Hello Description') + " " + executionDateTime;
+                var description = (process.env.TESTRAIL_RUN_DESC || 'Hello Description') + " " + executionDateTime;
                 _this.testRail.createRun(name_1, description, function () {
                     _this.testRail.publishResults(_this.results, function () {
                         _this.testRail.closeRun();

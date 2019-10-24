@@ -37,11 +37,17 @@ export class CypressTestRailReporter extends reporters.Spec {
     runner.on('fail', test => {
       const caseIds = titleToCaseIds(test.title);
       if (caseIds.length > 0) {
+        let testComment = test.err.message;
+        
+        if (process.env.TESTRAIL_RUN_DESC){
+          testComment = `Run description: ${process.env.TESTRAIL_RUN_DESC}\n${testComment}`;
+        }
+        
         const results = caseIds.map(caseId => {
           return {
             case_id: caseId,
             status_id: Status.Failed,
-            comment: `${test.err.message}`,
+            comment: testComment,
           };
         });
         this.results.push(...results);
@@ -69,7 +75,7 @@ export class CypressTestRailReporter extends reporters.Spec {
       else {
         const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
         const name = `${process.env.TESTRAIL_TITLE || 'Automated test run'}`;
-        const description = `${reporterOptions.runDescription || 'Hello Description'} ${executionDateTime}`;
+        const description = `${process.env.TESTRAIL_RUN_DESC || 'Hello Description'} ${executionDateTime}`;
 
         this.testRail.createRun(name, description, () => {
           this.testRail.publishResults(this.results, () => {
