@@ -38,11 +38,11 @@ export class CypressTestRailReporter extends reporters.Spec {
       const caseIds = titleToCaseIds(test.title);
       if (caseIds.length > 0) {
         let testComment = test.err.message;
-        
-        if (process.env.TESTRAIL_RUN_DESC){
+
+        if (process.env.TESTRAIL_RUN_DESC) {
           testComment = `Run description: ${process.env.TESTRAIL_RUN_DESC}\n${testComment}`;
         }
-        
+
         const results = caseIds.map(caseId => {
           return {
             case_id: caseId,
@@ -65,8 +65,7 @@ export class CypressTestRailReporter extends reporters.Spec {
         return;
       }
 
-      if (process.env.TESTRAIL_RUNID) {
-        this.testRail.runId = parseInt(process.env.TESTRAIL_RUNID);
+      if (this.testRail.runId) {
         this.testRail.cases = this.results.map((item) => {
           return item.case_id;
         })

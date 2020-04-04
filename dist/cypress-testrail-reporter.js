@@ -29,6 +29,7 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
         _this.validate(reporterOptions, 'projectId');
         _this.validate(reporterOptions, 'suiteId');
         runner.on('pass', function (test) {
+            var _a;
             var caseIds = shared_1.titleToCaseIds(test.title);
             if (caseIds.length > 0) {
                 var results = caseIds.map(function (caseId) {
@@ -40,9 +41,9 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                 });
                 (_a = _this.results).push.apply(_a, results);
             }
-            var _a;
         });
         runner.on('fail', function (test) {
+            var _a;
             var caseIds = shared_1.titleToCaseIds(test.title);
             if (caseIds.length > 0) {
                 var testComment_1 = test.err.message;
@@ -58,7 +59,6 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                 });
                 (_a = _this.results).push.apply(_a, results);
             }
-            var _a;
         });
         runner.on('end', function () {
             if (_this.results.length == 0) {
@@ -66,8 +66,7 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                 console.warn('\n', 'No testcases were matched. Ensure that your tests are declared correctly and matches Cxxx', '\n');
                 return;
             }
-            if (process.env.TESTRAIL_RUNID) {
-                _this.testRail.runId = parseInt(process.env.TESTRAIL_RUNID);
+            if (_this.testRail.runId) {
                 _this.testRail.cases = _this.results.map(function (item) {
                     return item.case_id;
                 });
