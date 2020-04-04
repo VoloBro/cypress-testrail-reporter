@@ -14,6 +14,7 @@ export class CypressTestRailReporter extends reporters.Spec {
 
     let reporterOptions = options.reporterOptions;
     this.testRail = new TestRail(reporterOptions);
+
     this.validate(reporterOptions, 'domain');
     this.validate(reporterOptions, 'username');
     this.validate(reporterOptions, 'password');

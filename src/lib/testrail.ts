@@ -8,6 +8,9 @@ export class TestRail {
   public cases;
 
   constructor(private options: TestRailOptions) {
+    if (options.runId) {
+      this.runId = options.runId;
+    };
     this.base = `https://${options.domain}/index.php?/api/v2`;
   }
 
@@ -55,7 +58,7 @@ export class TestRail {
           })
             .then(response => {
               this.runId = response.data.id;
-              if (callback){
+              if (callback) {
                 callback();
               }
             })
@@ -100,7 +103,7 @@ export class TestRail {
           )}`,
           '\n'
         );
-        if (callback){
+        if (callback) {
           callback();
         }
       })

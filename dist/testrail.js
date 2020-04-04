@@ -5,6 +5,10 @@ var chalk = require('chalk');
 var TestRail = /** @class */ (function () {
     function TestRail(options) {
         this.options = options;
+        if (options.runId) {
+            this.runId = options.runId;
+        }
+        ;
         this.base = "https://" + options.domain + "/index.php?/api/v2";
     }
     TestRail.prototype.createRun = function (name, description, callback) {
