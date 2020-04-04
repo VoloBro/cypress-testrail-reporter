@@ -70,7 +70,11 @@ export class CypressTestRailReporter extends reporters.Spec {
         this.testRail.cases = this.results.map((item) => {
           return item.case_id;
         })
-        this.testRail.publishResults(this.results, null);
+        this.testRail.publishResults(this.results, () => {
+          if (process.env.TESTRAIL_CLOSE_RUN.toLowerCase() == 'true') {
+            this.testRail.closeRun();
+          }
+        });
       }
       else {
         const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
@@ -79,7 +83,9 @@ export class CypressTestRailReporter extends reporters.Spec {
 
         this.testRail.createRun(name, description, () => {
           this.testRail.publishResults(this.results, () => {
-            this.testRail.closeRun();
+            if (process.env.TESTRAIL_CLOSE_RUN.toLowerCase() == 'true') {
+              this.testRail.closeRun();
+            }
           });
         });
       }

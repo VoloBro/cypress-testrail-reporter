@@ -70,7 +70,11 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                 _this.testRail.cases = _this.results.map(function (item) {
                     return item.case_id;
                 });
-                _this.testRail.publishResults(_this.results, null);
+                _this.testRail.publishResults(_this.results, function () {
+                    if (process.env.TESTRAIL_CLOSE_RUN.toLowerCase() == 'true') {
+                        _this.testRail.closeRun();
+                    }
+                });
             }
             else {
                 var executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
@@ -78,7 +82,9 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                 var description = (process.env.TESTRAIL_RUN_DESC || 'Hello Description') + " " + executionDateTime;
                 _this.testRail.createRun(name_1, description, function () {
                     _this.testRail.publishResults(_this.results, function () {
-                        _this.testRail.closeRun();
+                        if (process.env.TESTRAIL_CLOSE_RUN.toLowerCase() == 'true') {
+                            _this.testRail.closeRun();
+                        }
                     });
                 });
             }
