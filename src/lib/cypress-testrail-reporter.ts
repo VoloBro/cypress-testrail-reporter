@@ -3,7 +3,6 @@ import * as moment from 'moment';
 import { TestRail } from './testrail';
 import { titleToCaseIds } from './shared';
 import { Status, TestRailResult } from './testrail.interface';
-const chalk = require('chalk');
 
 export class CypressTestRailReporter extends reporters.Spec {
   private results: TestRailResult[] = [];
@@ -56,7 +55,7 @@ export class CypressTestRailReporter extends reporters.Spec {
 
     runner.on('end', () => {
       if (this.results.length == 0) {
-        console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
+        console.log('\n', '(TestRail Reporter)');
         console.warn(
           '\n',
           'No testcases were matched. Ensure that your tests are declared correctly and matches Cxxx',

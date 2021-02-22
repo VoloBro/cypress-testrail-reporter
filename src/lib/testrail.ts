@@ -1,109 +1,81 @@
-const axios = require('axios');
-const chalk = require('chalk');
+const testRail = require('testrail-api-client').default;
 import { TestRailOptions, TestRailResult } from './testrail.interface';
 
 export class TestRail {
+  private client: any;
   private base: String;
   public runId: Number;
   public cases;
 
   constructor(private options: TestRailOptions) {
     this.base = `https://${options.domain}/index.php?/api/v2`;
+
+    const testRailOptions = {
+      domain: `${options.domain}`,
+      username: `${options.username}`,
+      password: `${options.password}`,
+    };
+
+    this.client = new testRail(testRailOptions);
   }
 
   public createRun(name: string, description: string, callback) {
     const customField = process.env.TESTRAIL_CUSTOM;
-
     if (customField) {
-      axios({
-        method: 'get',
-        url: `${this.base}/get_cases/${this.options.projectId}/&suite_id=${this.options.suiteId}`,
-        headers: { 'Content-Type': 'application/json' },
-        auth: {
-          username: this.options.username,
-          password: this.options.password,
-        },
-        data: JSON.stringify({
-          suite_id: this.options.suiteId,
-          name,
-          description,
-          include_all: true,
-        }),
-      })
-        .then(response => {
+      this.client
+        .getCases(this.options.projectId, this.options.suiteId)
+        .then(function (casesInSuite) {
           const key = customField.split(":")[0].trim();
           const value = customField.split(":")[1].trim();
-          this.cases = response.data.filter(tc => tc[key] == value).map(c => c.id);
+          this.cases = casesInSuite.filter(tc => tc[key] == value).map(c => c.id);
 
           console.log(`Creating a run for case id's`, this.cases);
 
-          axios({
-            method: 'post',
-            url: `${this.base}/add_run/${this.options.projectId}`,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-              username: this.options.username,
-              password: this.options.password,
-            },
-            data: JSON.stringify({
-              suite_id: this.options.suiteId,
-              name,
-              description,
-              include_all: false,
-              case_ids: this.cases,
-            }),
-          })
-            .then(response => {
-              this.runId = response.data.id;
-              if (callback){
+          this.client
+            .addRun(name, description, this.options.projectId, this.options.suiteId, casesInSuite)
+            .then(function (newRunId) {
+              this.runId = newRunId;
+              if (callback) {
                 callback();
               }
             })
-            .catch(error => console.error(error));
-
+            .catch((error) => console.error(error));
         })
-        .catch(error => console.error(error));
+        .catch((error) => console.error(error));
     }
   }
 
   public closeRun() {
-    axios({
-      method: 'post',
-      url: `${this.base}/close_run/${this.runId}`,
-      headers: { 'Content-Type': 'application/json' },
-      auth: {
-        username: this.options.username,
-        password: this.options.password,
-      },
-    }).catch(error => console.error(error));
+    const testRailRunUrl = `https://${this.options.domain}/index.php?/runs/view/${this.runId}`;
+
+    this.client.closeRun(this.runId)
+      .then(() => {
+        console.log(`Closed run: ${testRailRunUrl}`);
+      })
+      .catch(err => {
+        console.log(`Failed to close run: ${testRailRunUrl}`);
+        console.log(err);
+      });
   }
 
   public publishResults(results: TestRailResult[], callback) {
     const results_filtered = results.filter(res => this.cases.includes(res.case_id));
 
-    axios({
-      method: 'post',
-      url: `${this.base}/add_results_for_cases/${this.runId}`,
-      headers: { 'Content-Type': 'application/json' },
-      auth: {
-        username: this.options.username,
-        password: this.options.password,
-      },
-      data: JSON.stringify({ "results": results_filtered }),
-    })
-      .then(response => {
-        console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
+    this.client
+      .addResultsForCases(this.runId, results_filtered)
+      .then(() => {
+        console.log('\n', '(TestRail Reporter)');
         console.log(
           '\n',
-          ` - Results are published to ${chalk.magenta(
-            `https://${this.options.domain}/index.php?/runs/view/${this.runId}`
-          )}`,
+          ` - Results are published to https://${this.options.domain}/index.php?/runs/view/${this.runId}`,
           '\n'
         );
-        if (callback){
+        if (callback) {
           callback();
         }
       })
-      .catch(error => console.error(error));
+      .catch((err) => {
+        console.log("Failed to addResultsForCases", err);
+      });
   }
 }

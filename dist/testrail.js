@@ -1,54 +1,32 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var axios = require('axios');
-var chalk = require('chalk');
+exports.TestRail = void 0;
+var testRail = require('testrail-api-client').default;
 var TestRail = /** @class */ (function () {
     function TestRail(options) {
         this.options = options;
         this.base = "https://" + options.domain + "/index.php?/api/v2";
+        var testRailOptions = {
+            domain: "" + options.domain,
+            username: "" + options.username,
+            password: "" + options.password,
+        };
+        this.client = new testRail(testRailOptions);
     }
     TestRail.prototype.createRun = function (name, description, callback) {
-        var _this = this;
         var customField = process.env.TESTRAIL_CUSTOM;
         if (customField) {
-            axios({
-                method: 'get',
-                url: this.base + "/get_cases/" + this.options.projectId + "/&suite_id=" + this.options.suiteId,
-                headers: { 'Content-Type': 'application/json' },
-                auth: {
-                    username: this.options.username,
-                    password: this.options.password,
-                },
-                data: JSON.stringify({
-                    suite_id: this.options.suiteId,
-                    name: name,
-                    description: description,
-                    include_all: true,
-                }),
-            })
-                .then(function (response) {
+            this.client
+                .getCases(this.options.projectId, this.options.suiteId)
+                .then(function (casesInSuite) {
                 var key = customField.split(":")[0].trim();
                 var value = customField.split(":")[1].trim();
-                _this.cases = response.data.filter(function (tc) { return tc[key] == value; }).map(function (c) { return c.id; });
-                console.log("Creating a run for case id's", _this.cases);
-                axios({
-                    method: 'post',
-                    url: _this.base + "/add_run/" + _this.options.projectId,
-                    headers: { 'Content-Type': 'application/json' },
-                    auth: {
-                        username: _this.options.username,
-                        password: _this.options.password,
-                    },
-                    data: JSON.stringify({
-                        suite_id: _this.options.suiteId,
-                        name: name,
-                        description: description,
-                        include_all: false,
-                        case_ids: _this.cases,
-                    }),
-                })
-                    .then(function (response) {
-                    _this.runId = response.data.id;
+                this.cases = casesInSuite.filter(function (tc) { return tc[key] == value; }).map(function (c) { return c.id; });
+                console.log("Creating a run for case id's", this.cases);
+                this.client
+                    .addRun(name, description, this.options.projectId, this.options.suiteId, casesInSuite)
+                    .then(function (newRunId) {
+                    this.runId = newRunId;
                     if (callback) {
                         callback();
                     }
@@ -59,37 +37,31 @@ var TestRail = /** @class */ (function () {
         }
     };
     TestRail.prototype.closeRun = function () {
-        axios({
-            method: 'post',
-            url: this.base + "/close_run/" + this.runId,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-                username: this.options.username,
-                password: this.options.password,
-            },
-        }).catch(function (error) { return console.error(error); });
+        var testRailRunUrl = "https://" + this.options.domain + "/index.php?/runs/view/" + this.runId;
+        this.client.closeRun(this.runId)
+            .then(function () {
+            console.log("Closed run: " + testRailRunUrl);
+        })
+            .catch(function (err) {
+            console.log("Failed to close run: " + testRailRunUrl);
+            console.log(err);
+        });
     };
     TestRail.prototype.publishResults = function (results, callback) {
         var _this = this;
         var results_filtered = results.filter(function (res) { return _this.cases.includes(res.case_id); });
-        axios({
-            method: 'post',
-            url: this.base + "/add_results_for_cases/" + this.runId,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-                username: this.options.username,
-                password: this.options.password,
-            },
-            data: JSON.stringify({ "results": results_filtered }),
-        })
-            .then(function (response) {
-            console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
-            console.log('\n', " - Results are published to " + chalk.magenta("https://" + _this.options.domain + "/index.php?/runs/view/" + _this.runId), '\n');
+        this.client
+            .addResultsForCases(this.runId, results_filtered)
+            .then(function () {
+            console.log('\n', '(TestRail Reporter)');
+            console.log('\n', " - Results are published to https://" + _this.options.domain + "/index.php?/runs/view/" + _this.runId, '\n');
             if (callback) {
                 callback();
             }
         })
-            .catch(function (error) { return console.error(error); });
+            .catch(function (err) {
+            console.log("Failed to addResultsForCases", err);
+        });
     };
     return TestRail;
 }());
